@@ -23,6 +23,11 @@ class InvestigatorSchema(BaseModel):
     value: int
     document: Optional[str]
 
+class InvestigatorsSchema(BaseModel):
+    inv_id: Optional[int]
+    name: str
+    dni: int
+
 class DocumentsSchema(BaseModel):
     id_document: Optional[int]
     id_user: Optional[int]

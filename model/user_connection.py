@@ -32,10 +32,20 @@ class UserConnection():
             data = cur.fetchone()
             return data
     
+    def read_users(self):
+        with self.db.cursor() as cur:
+            cur.execute("SELECT * FROM cities")
+            data = cur.fetchall()
+            return data
 
     #---------------------------------------------------------------------------------#
     #--------------- Documents Ivestigator CRUD --------------------------------------#
     #---------------------------------------------------------------------------------#
+
+    def insert_investigator(self, data):
+        with self.db.cursor() as cur:
+            cur.execute("INSERT INTO investigator (inv_id, name, dni) VALUES (%(inv_id)s,%(name)s, %(dni)s)", data)
+            self.db.commit()
 
     def info_investigator(self, data):
         with self.db.cursor() as cur:

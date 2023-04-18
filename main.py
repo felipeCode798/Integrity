@@ -3,7 +3,7 @@ import PyPDF2
 from fastapi import FastAPI, File, UploadFile, Response, Form
 from starlette.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND, HTTP_200_OK
 from model.user_connection import UserConnection
-from schema.user_schema import UserSchema, InvestigatorSchema, DocumentsSchema, AnalisisSchema, ApocrifoSchema, Datos
+from schema.user_schema import UserSchema, InvestigatorSchema, DocumentsSchema, AnalisisSchema, ApocrifoSchema, InvestigatorsSchema
 from utils import funciones
 from datetime import datetime
 from werkzeug.utils import secure_filename
@@ -39,6 +39,17 @@ async def read_users():
         dictionary["email"] = i[5]
         dictionary["address"] = i[6]
         dictionary["photo"] = i[7]
+        items.append(dictionary)
+    return items
+
+@app.get("/api/city", status_code=HTTP_200_OK)
+async def read_users():
+    items = []
+    data = conn.read_users()
+    for i in data:
+        dictionary = {}
+        dictionary["ci_id"] = i[0]
+        dictionary["name"] = i[1]
         items.append(dictionary)
     return items
 
@@ -103,6 +114,12 @@ async def read_investigator_id(id_document: int):
         return dictionary
     else:
         return Response(status_code=HTTP_404_NOT_FOUND)
+    
+@app.post("/api/insert_investigator", status_code=HTTP_201_CREATED)
+async def insert_investigator(investigators_data: InvestigatorsSchema):
+    data = investigators_data.dict()
+    conn.insert_investigator(data)
+    return Response(status_code=HTTP_201_CREATED)
 
 @app.post("/api/info_investigator", status_code=HTTP_201_CREATED)
 async def info_investigator(investigator_data: InvestigatorSchema):
