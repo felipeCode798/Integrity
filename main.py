@@ -43,9 +43,9 @@ async def read_users():
     return items
 
 @app.get("/api/city", status_code=HTTP_200_OK)
-async def read_users():
+async def read_city():
     items = []
-    data = conn.read_users()
+    data = conn.read_city()
     for i in data:
         dictionary = {}
         dictionary["ci_id"] = i[0]
@@ -69,6 +69,18 @@ async def read_user(user_id: int):
         return dictionary
     else:
         return Response(status_code=HTTP_404_NOT_FOUND)
+    
+@app.get("/api/read_investigators", status_code=HTTP_200_OK)
+async def read_investigators():
+    items = []
+    data = conn.read_investigators()
+    for i in data:
+        dictionary = {}
+        dictionary["inv_id"] = i[0]
+        dictionary["name"] = i[1]
+        dictionary["dni"] = i[2]
+        items.append(dictionary)
+    return items
 
 @app.post("/api/info_user", status_code=HTTP_201_CREATED)
 async def info_user(user_data: UserSchema):

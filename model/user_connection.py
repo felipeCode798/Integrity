@@ -4,7 +4,7 @@ import psycopg2
 class UserConnection():
     def __init__(self):
         try:
-            self.db = psycopg2.connect("dbname=INTEGRITY user=postgres password=1234 host=localhost port=5432")
+            self.db = psycopg2.connect("dbname=INTEGRITY user=postgres password=12345678 host=localhost port=5433")
         except psycopg2.OperationalError as err:
             print("Error: ", err)
             self.conn.close()
@@ -32,9 +32,15 @@ class UserConnection():
             data = cur.fetchone()
             return data
     
-    def read_users(self):
+    def read_city(self):
         with self.db.cursor() as cur:
             cur.execute("SELECT * FROM cities")
+            data = cur.fetchall()
+            return data
+
+    def read_investigators(self):
+        with self.db.cursor() as cur:
+            cur.execute("SELECT * FROM investigator")
             data = cur.fetchall()
             return data
 
