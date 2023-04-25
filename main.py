@@ -3,7 +3,7 @@ import PyPDF2
 from fastapi import FastAPI, File, UploadFile, Response, Form
 from starlette.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND, HTTP_200_OK
 from model.user_connection import UserConnection
-from schema.user_schema import UserSchema, InvestigatorSchema, DocumentsSchema, AnalisisSchema, ApocrifoSchema, InvestigatorsSchema
+from schema.user_schema import UserSchema, InvestigatorSchema, DocumentsSchema, AnalisisSchema, ApocrifoSchema, InvestigatorsSchema,productservices
 from utils import funciones
 from datetime import datetime
 from werkzeug.utils import secure_filename
@@ -22,9 +22,18 @@ app.add_middleware(
 )
 
 #---------------------------------------------------------------------------------#
-#--------------- User CRUD -------------------------------------------------------#
+#--------------- GET -------------------------------------------------------------#
 #---------------------------------------------------------------------------------#
 
+#---------------------------------------------------------------------------------#
+#--------------- User ------------------------------------------------------------#
+#---------------------------------------------------------------------------------#
+
+"""
+Keyword arguments: No recibe ningun
+argument -- Consulta todos los usuarios registrados
+Return: array -> items
+"""
 @app.get("/", status_code=HTTP_200_OK)
 async def read_users():
     items = []
@@ -42,17 +51,12 @@ async def read_users():
         items.append(dictionary)
     return items
 
-@app.get("/api/city", status_code=HTTP_200_OK)
-async def read_city():
-    items = []
-    data = conn.read_city()
-    for i in data:
-        dictionary = {}
-        dictionary["ci_id"] = i[0]
-        dictionary["name"] = i[1]
-        items.append(dictionary)
-    return items
 
+"""
+Keyword arguments: user_id
+argument -- Consulta usuarios registrados por id
+Return: array -> dictionary
+"""
 @app.get("/api/user/{user_id}", status_code=HTTP_200_OK)
 async def read_user(user_id: int):
     data = conn.read_user(user_id)
@@ -70,10 +74,39 @@ async def read_user(user_id: int):
     else:
         return Response(status_code=HTTP_404_NOT_FOUND)
     
-@app.get("/api/read_investigators", status_code=HTTP_200_OK)
-async def read_investigators():
+#---------------------------------------------------------------------------------#
+#--------------- City ------------------------------------------------------------#
+#---------------------------------------------------------------------------------#
+    
+
+"""
+Keyword arguments: No recibe ningun
+argument -- Consulta todas las ciudades registradas
+Return: array -> items
+"""
+@app.get("/api/city", status_code=HTTP_200_OK)
+async def read_city():
     items = []
-    data = conn.read_investigators()
+    data = conn.read_city()
+    for i in data:
+        dictionary = {}
+        dictionary["ci_id"] = i[0]
+        dictionary["name"] = i[1]
+        items.append(dictionary)
+    return items
+
+#---------------------------------------------------------------------------------#
+#--------------- Ivestigator -----l------------------------------------------------#
+#---------------------------------------------------------------------------------#
+"""
+Keyword arguments: No recibe ningun
+argument -- Consulta todos los investigadores registrados
+Return: array -> items
+"""
+@app.get("/api/read_investigator", status_code=HTTP_200_OK)
+async def read_investigator():
+    items = []
+    data = conn.read_investigator()
     for i in data:
         dictionary = {}
         dictionary["inv_id"] = i[0]
@@ -82,21 +115,19 @@ async def read_investigators():
         items.append(dictionary)
     return items
 
-@app.post("/api/info_user", status_code=HTTP_201_CREATED)
-async def info_user(user_data: UserSchema):
-    data = user_data.dict()
-    conn.info_user(data)
-    return Response(status_code=HTTP_201_CREATED)
-
-
 #---------------------------------------------------------------------------------#
-#--------------- Ivestigator CRUD ------------------------------------------------#
+#--------------- Documents CRUD --------------------------------------------------#
 #---------------------------------------------------------------------------------#
 
-@app.get("/api/investigator", status_code=HTTP_200_OK)
-async def read_investigator():
+"""
+Keyword arguments: No recibe ningun
+argument -- Consulta todos los docuemntos registrados sin el resultado del analisis del documento
+Return: array -> items
+"""
+@app.get("/api/documents", status_code=HTTP_200_OK)
+async def read_documents():
     items = []
-    data = conn.read_investigator()
+    data = conn.read_documents()
     for i in data:
         dictionary = {}
         dictionary["id_document"] = i[0]
@@ -110,9 +141,14 @@ async def read_investigator():
         items.append(dictionary)
     return items
 
-@app.get("/api/investigator/{id_document}", status_code=HTTP_200_OK)
-async def read_investigator_id(id_document: int):
-    data = conn.read_investigator_id(id_document)
+"""
+Keyword arguments: id_document
+argument -- Consulta los documentos registrados por id, sin el resultado del analisis del documento
+Return: array -> dictionary
+"""
+@app.get("/api/document/{id_document}", status_code=HTTP_200_OK)
+async def read_document_id(id_document: int):
+    data = conn.read_document_id(id_document)
     if data:
         dictionary = {}
         dictionary["id_document"] = data[0]
@@ -127,51 +163,26 @@ async def read_investigator_id(id_document: int):
     else:
         return Response(status_code=HTTP_404_NOT_FOUND)
     
-@app.post("/api/insert_investigator", status_code=HTTP_201_CREATED)
-async def insert_investigator(investigators_data: InvestigatorsSchema):
-    data = investigators_data.dict()
-    conn.insert_investigator(data)
-    return Response(status_code=HTTP_201_CREATED)
+"""
+Keyword arguments: id_document
+argument -- Trae el documento analizado por id
+Return: data
+"""
 
-@app.post("/api/info_investigator", status_code=HTTP_201_CREATED)
-async def info_investigator(investigator_data: InvestigatorSchema):
-    data = investigator_data.dict()
-    conn.info_investigator(data)
-    return Response(status_code=HTTP_201_CREATED)
-
-@app.put("/api/update_investigator/{id_document}", status_code=HTTP_204_NO_CONTENT)
-async def update_investigator(investigator_data: InvestigatorSchema, id: int):
-    data = investigator_data.dict()
-    data["id_document"] = id
-    conn.update_investigator(data)
-    return Response(status_code=HTTP_204_NO_CONTENT)
-
-#---------------------------------------------------------------------------------#
-#--------------- Documents CRUD --------------------------------------------------#
-#---------------------------------------------------------------------------------#
-
-@app.put("/api/update_document/{id_document}", status_code=HTTP_204_NO_CONTENT)
-async def update_documents(list, id: int):
-    data = list
-    #data["id_document"] = id
-    conn.update_documents(data)
-    return Response(status_code=HTTP_204_NO_CONTENT)
-
-#---------------------------------------------------------------------------------#
-#--------------- Consulta Id -----------------------------------------------------#
-#---------------------------------------------------------------------------------#
-
-@app.put("/api/status/{id_document}", status_code=HTTP_204_NO_CONTENT)
-async def status(analisis_data: AnalisisSchema, id: int):
-    data = analisis_data.dict()
-    data["id_document"] = id
-    conn.status(data)
-    return Response(status_code=HTTP_204_NO_CONTENT)
+@app.get("/api/get_document/{id_document}", status_code=HTTP_200_OK)
+async def get_document(id_document: int):
+    data = conn.get_document(id_document)
+    return data
 
 #---------------------------------------------------------------------------------#
 #--------------- Apocrifo CRUD ---------------------------------------------------#
 #---------------------------------------------------------------------------------#
 
+"""
+Keyword arguments: No recibe ningun
+argument -- Consulta todos los registros que han sido aporcrifos
+Return: array -> items
+"""
 @app.get("/api/apocrifo", status_code=HTTP_200_OK)
 async def read_apocrifo():
     items = []
@@ -188,6 +199,11 @@ async def read_apocrifo():
         items.append(dictionary)
     return items
 
+"""
+Keyword arguments: id_apocrifo
+argument -- Consulta los registros que han sido apocrifos por id
+Return: array -> dictionary
+"""
 @app.get("/api/apocrifo/{id_apocrifo}", status_code=HTTP_200_OK)
 async def read_apocrifo_id(id_apocrifo: int):
     data = conn.read_apocrifo_id(id_apocrifo)
@@ -204,51 +220,140 @@ async def read_apocrifo_id(id_apocrifo: int):
     else:
         return Response(status_code=HTTP_404_NOT_FOUND)
 
+#---------------------------------------------------------------------------------#
+#--------------- Creator, Producer y Autor Consulta ------------------------------#
+#---------------------------------------------------------------------------------#
+
+"""
+Keyword arguments: creator
+argument -- Cuenta las couidencias de un creador en la blacklist
+Return: array -> data
+"""
+@app.get("/api/consulta_creator", status_code=HTTP_200_OK)
+async def consulta_creator(creator: str):
+    data = conn.consulta_creator(creator)
+    return data
+
+"""
+Keyword arguments: producer
+argument -- Cuenta las couidencias de un productor en la blacklist
+Return: array -> data
+"""
+@app.get("/api/consulta_producer", status_code=HTTP_200_OK)
+async def consulta_producer(producer: str):
+    data = conn.consulta_producer(producer)
+    return data
+
+"""
+Keyword arguments: autor
+argument -- Cuenta las couidencias de un autor en documentos apocrifos
+Return: array -> data
+"""
+@app.get("/api/consulta_autor", status_code=HTTP_200_OK)
+async def consulta_autor(autor: str):
+    data = conn.consulta_autor(autor)
+    return data
+
+#---------------------------------------------------------------------------------#
+#--------------- Producto o Servicio ---------------------------------------------#
+#---------------------------------------------------------------------------------#
+
+"""
+Keyword arguments: No recibe ningun
+argument -- Consulta todos los productos y servicios registrados
+Return: array -> items
+"""
+@app.get("/api/read_productoservice", status_code=HTTP_200_OK)
+async def read_productoservice():
+    items = []
+    data = conn.read_productoservice()
+    for i in data:
+        dictionary = {}
+        dictionary["inv_id"] = i[0]
+        dictionary["name"] = i[1]
+        dictionary["dni"] = i[2]
+        items.append(dictionary)
+    return items
+
+#---------------------------------------------------------------------------------#
+#--------------- POST      -------------------------------------------------------#
+#---------------------------------------------------------------------------------#
+
+#---------------------------------------------------------------------------------#
+#--------------- User CRUD -------------------------------------------------------#
+#---------------------------------------------------------------------------------#
+
+"""
+Keyword arguments: user_data
+argument -- Inserta un nuevo usuario
+Return: Response 201
+"""
+@app.post("/api/info_user", status_code=HTTP_201_CREATED)
+async def info_user(user_data: UserSchema):
+    data = user_data.dict()
+    conn.info_user(data)
+    return Response(status_code=HTTP_201_CREATED)
+
+
+#---------------------------------------------------------------------------------#
+#--------------- Ivestigator CRUD ------------------------------------------------#
+#---------------------------------------------------------------------------------#
+
+"""
+Keyword arguments: investigators_data
+argument -- Inserta un nuevo investigador
+Return: Response 201
+"""
+@app.post("/api/insert_investigator", status_code=HTTP_201_CREATED)
+async def insert_investigator(investigators_data: InvestigatorsSchema):
+    data = investigators_data.dict()
+    conn.insert_investigator(data)
+    return Response(status_code=HTTP_201_CREATED)
+
+#---------------------------------------------------------------------------------#
+#--------------- Documents CRUD --------------------------------------------------#
+#---------------------------------------------------------------------------------#
+
+"""
+Keyword arguments: documents_data
+argument -- Inserta datos de informacion de un nuevo documento
+Return: Response 201
+"""
+@app.post("/api/info_documents", status_code=HTTP_201_CREATED)
+async def info_documents(documents_data: InvestigatorSchema):
+    data = documents_data.dict()
+    now = datetime.now()
+    time = now.strftime("%Y%H%M%S")
+    data["document"] = f"{time}{data['document']}{'.pdf'}"
+    conn.info_documents(data)
+    return Response(status_code=HTTP_201_CREATED)
+
+#---------------------------------------------------------------------------------#
+#--------------- Apocrifo CRUD ---------------------------------------------------#
+#---------------------------------------------------------------------------------#
+
+"""
+Keyword arguments: list
+argument -- Inserta regitro de un documento apocrifo
+Return: Response 201
+"""
 @app.post("/api/info_apocrifo", status_code=HTTP_201_CREATED)
 async def info_apocrifo(list):
     data = list
     conn.info_apocrifo(data)
     return Response(status_code=HTTP_201_CREATED)
 
-@app.put("/api/update_apocrifo/{id_apocrifo}", status_code=HTTP_204_NO_CONTENT)
-async def update_apocrifo(apocrifo_data: ApocrifoSchema, id: int):
-    data = apocrifo_data.dict()
-    data["id_apocrifo"] = id
-    conn.update_apocrifo(data)
-    return Response(status_code=HTTP_204_NO_CONTENT)
-
 #---------------------------------------------------------------------------------#
-#--------------- Creator y Producer Consulta -------------------------------------#
+#--------------- Analisis  -------------------------------------------------------#
 #---------------------------------------------------------------------------------#
 
-@app.get("/api/consulta_creator", status_code=HTTP_200_OK)
-async def consulta_creator(creator: str):
-    data = conn.consulta_creator(creator)
-    return data
-
-@app.get("/api/consulta_producer", status_code=HTTP_200_OK)
-async def consulta_producer(producer: str):
-    data = conn.consulta_producer(producer)
-    return data
-
-
-#---------------------------------------------------------------------------------#
-#--------------- Autor Consulta --------------------------------------------------#
-#---------------------------------------------------------------------------------#
-
-@app.get("/api/consulta_autor", status_code=HTTP_200_OK)
-async def consulta_autor(autor: str):
-    data = conn.consulta_autor(autor)
-    return data
-
-
-#---------------------------------------------------------------------------------#
-#--------------- Pdf Analisis ----------------------------------------------------#
-#---------------------------------------------------------------------------------#
-
+"""
+Keyword arguments: list
+argument -- Realiza el analisis de un documento cuando es pdf
+Return: resultado
+"""
 @app.post("/analisis/")
 async def analisis_endpoint(list):
-    print('Esta es la data')
     tipo = list[0]
     creacion_fecha = list[1]
     creacion_fecha_hora = list[2]
@@ -294,52 +399,48 @@ async def analisis_endpoint(list):
     hour = 144500
 
     if creatorCont >= 1:
-        print('caso 1')
         conn.status(apocrifo)
         conn.info_apocrifo(data)
         resultado = "Este documento posiblemente es apocrifo"
     elif authorCont >= 1:
-        print('caso 2')
         conn.status(apocrifo)
         conn.info_apocrifo(data)
         resultado = "Este documento posiblemente es apocrifo o el autor de este documento ha intentado subir documentos posiblemente apocrifos anteriormente"
     elif producerCont >= 1:
-        print('caso 3')
         conn.status(apocrifo)
         conn.info_apocrifo(data)
         resultado = "Este documento posiblemente es apocrifo"
     elif creacion_fecha != modifica_fecha:
-        print('caso 4')
         conn.status(apocrifo)
         conn.info_apocrifo(data)
         resultado = "Este documento posiblemente es apocrifo"
     elif creacion_fecha_hora != modifica_fecha_hora:
-        print('caso 5')
         conn.status(apocrifo)
         conn.info_apocrifo(data)
         resultado = "Este documento posiblemente es apocrifo"
     elif creacion_fecha == 0:
-        print('caso 6')
         conn.status(apocrifo)
         conn.info_apocrifo(data)
         resultado = "Este documento posiblemente es apocrifo"
     elif date > fecha:
-        print('caso 7')
         conn.status(apocrifo)
         conn.info_apocrifo(data)
         resultado = "Este documento posiblemente es apocrifo"
     elif hour > hora:
-        print('caso 8')
         conn.status(apocrifo)
         conn.info_apocrifo(data)
         resultado = "Este documento posiblemente es apocrifo"
     else:
-        print('caso 9')
         conn.status(autentico)
         resultado = "Este docuemto es autentico"
 
     return resultado
 
+"""
+Keyword arguments: name, phone, dni, file
+argument -- devuelve el resultado del analisis de un documento
+Return: resultado
+"""
 @app.post("/uploadfile/")
 async def create_upload_file(name: str, phone: int, dni: int, file: UploadFile = File(...)):
     
@@ -419,7 +520,6 @@ async def create_upload_file(name: str, phone: int, dni: int, file: UploadFile =
         id_apocrifo = conn.next_id_apocrifo()
         id_status = conn.consulta_id()
 
-
         data = {
             'tipo': tipo,
             'creation_date': creation_date,
@@ -446,3 +546,83 @@ async def create_upload_file(name: str, phone: int, dni: int, file: UploadFile =
         resultado = await analisis_endpoint(data)
 
     return resultado
+
+#---------------------------------------------------------------------------------#
+#--------------- Produto o Servicio ----------------------------------------------#
+#---------------------------------------------------------------------------------#
+
+"""
+Keyword arguments: producservice_data
+argument -- Inserta la informacion de un producto o servicio
+Return: Response 201
+"""
+@app.post("/api/info_productoservice", status_code=HTTP_201_CREATED)
+async def info_productoservice(producservice_data: productservices):
+    data = producservice_data.dict()
+    conn.info_productoservice(data)
+    return Response(status_code=HTTP_201_CREATED)
+
+#---------------------------------------------------------------------------------#
+#--------------- PUT       -------------------------------------------------------#
+#---------------------------------------------------------------------------------#
+
+#---------------------------------------------------------------------------------#
+#--------------- Ivestigator CRUD ------------------------------------------------#
+#---------------------------------------------------------------------------------#
+
+"""
+Keyword arguments: investigator_data, id
+argument -- Actualiza la informacion de un investigador
+Return: Response 204
+"""
+@app.put("/api/update_investigator/{id_document}", status_code=HTTP_204_NO_CONTENT)
+async def update_documents_info(investigator_data: InvestigatorSchema, id: int):
+    data = investigator_data.dict()
+    data["id_document"] = id
+    conn.update_documents_info(data)
+    return Response(status_code=HTTP_204_NO_CONTENT)
+
+#---------------------------------------------------------------------------------#
+#--------------- Documents CRUD --------------------------------------------------#
+#---------------------------------------------------------------------------------#
+
+"""
+Keyword arguments: document_data, id
+argument -- Actualiza la informacion de un documento 
+Return: Response 204
+"""
+@app.put("/api/update_documents/{id_document}", status_code=HTTP_204_NO_CONTENT)
+async def update_documents(investigator_data: DocumentsSchema, id: int):
+    data = investigator_data.dict()
+    data["id_document"] = id
+    conn.update_documents(data)
+    return Response(status_code=HTTP_204_NO_CONTENT)
+
+
+"""
+Keyword arguments: list, id
+argument -- Inserta el analisis final de un documento
+Return: Response 204
+"""
+@app.put("/api/update_document/{id_document}", status_code=HTTP_204_NO_CONTENT)
+async def update_documents(list, id: int):
+    data = list
+    conn.update_documents(data)
+    return Response(status_code=HTTP_204_NO_CONTENT)
+
+
+#---------------------------------------------------------------------------------#
+#--------------- Analisis --------------------------------------------------------#
+#---------------------------------------------------------------------------------#
+
+"""
+Keyword arguments: analisis_data, id
+argument -- Inserta el analisis el cual define si es apocrifo o no
+Return: return_description
+"""
+@app.put("/api/status/{id_document}", status_code=HTTP_204_NO_CONTENT)
+async def status(analisis_data: AnalisisSchema, id: int):
+    data = analisis_data.dict()
+    data["id_document"] = id
+    conn.status(data)
+    return Response(status_code=HTTP_204_NO_CONTENT)

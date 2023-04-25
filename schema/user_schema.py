@@ -4,7 +4,6 @@ from typing import Optional
 from fastapi import UploadFile, File
 
 class UserSchema(BaseModel):
-    user_id: Optional[int]
     name: str
     dni: int
     id_ciudad: int
@@ -14,22 +13,19 @@ class UserSchema(BaseModel):
     photo: Optional[str]
 
 class InvestigatorSchema(BaseModel):
-    id_document: Optional[int]
     id_user: int
-    product: str
-    service: str
+    id_product: Optional[int]
+    id_service: Optional[int]
     id_city: int
     id_investigator: int
     value: int
     document: Optional[str]
 
 class InvestigatorsSchema(BaseModel):
-    inv_id: Optional[int]
     name: str
     dni: int
 
 class DocumentsSchema(BaseModel):
-    id_document: Optional[int]
     id_user: Optional[int]
     id_city: Optional[int]
     id_investigator: Optional[int]
@@ -37,15 +33,13 @@ class DocumentsSchema(BaseModel):
     autor: Optional[str]
     produccer: Optional[str]
     title: Optional[str]
-    creationdate: date
+    creationdate: int
     last_date: int
 
 class AnalisisSchema(BaseModel):
-    id_document: Optional[int]
     status: str
 
 class ApocrifoSchema(BaseModel):
-    id_apocrifo: Optional[int]
     creator: str
     autor: str
     producer: str
@@ -106,3 +100,9 @@ class Datos(BaseModel):
     creatorName: str
     autorName: str
     producerName: str
+
+
+class productservices(BaseModel):
+    name: str
+    id_type: int
+    report_date: date
